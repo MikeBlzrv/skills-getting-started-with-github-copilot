@@ -25,6 +25,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          <p><strong>Participants:</strong></p>
+          <ul>
+            ${details.participants.length > 0 ? details.participants.map(email => `<li>${email} <span class="delete-icon" data-email="${email}" data-activity="${name}">×</span></li>`).join('') : '<li>No participants yet</li>'}
+          </ul>
         `;
 
         activitiesList.appendChild(activityCard);
@@ -40,6 +44,32 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error fetching activities:", error);
     }
   }
+
+  // Function to delete a participant
+  async function deleteParticipant(activityName, email) {
+    try {
+      const response = await fetch(`/activities/${encodeURIComponent(activityName)}/participants/${encodeURIComponent(email)}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        // Refresh activities
+        fetchActivities();
+      } else {
+        alert('Failed to unregister participant');
+      }
+    } catch (error) {
+      console.error('Error deleting participant:', error);
+    }
+  }
+
+  // Event listener for delete icons
+  activitiesList.addEventListener('click', function(event) {
+    if (event.target.classList.contains('delete-icon')) {
+      const email = event.target.dataset.email;
+      const activityName = event.target.dataset.activity;
+      deleteParticipant(activityName, email);
+    }
+  });
 
   // Handle form submission
   signupForm.addEventListener("submit", async (event) => {
